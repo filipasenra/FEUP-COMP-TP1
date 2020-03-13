@@ -9,7 +9,7 @@ public class Jmm {
         
         System.out.println("Write an Java-- expression:");
         Jmm myParser = new Jmm(System.in);
-        SimpleNode root = myParser.Expression(); // returns reference to root node 
+        SimpleNode root = myParser.ParseExpression(); // returns reference to root node 
         
         root.dump(""); // prints the tree on the screen
 
@@ -93,7 +93,7 @@ TOKEN : {
     | <ASSIGN: "=">
 }
 
-SimpleNode Expression(): {}
+SimpleNode ParseExpression(): {}
 {
     ClassDeclaration() <EOF>  {return jjtThis;} //Java code inside brackets
 
@@ -122,13 +122,13 @@ void MethodDeclaration(): {} {
     <LEFT_PARENTESIS> 
         Type() <IDENTIFIER> (<COLON> Type() <IDENTIFIER>)*
     <RIGHT_PARENTESIS>
-    <LEFT_BRACKET> 
-        (VarDeclaration())* 
+    <LEFT_BRACE> 
+        (LOOKAHEAD(2) VarDeclaration())* 
         (Statement())*
         <RETURN>
         Expression()
         <SEMICOLON>
-    <LEFT_BRACKET>
+    <RIGHT_BRACE>
 
 }
 
@@ -148,31 +148,55 @@ void Statement(): {} {
         <LEFT_PARENTESIS> Expression() <RIGHT_PARENTESIS>
         Statement()
       )
+    | (LOOKAHEAD(2) 
+    (Expression() <SEMICOLON>)
     | (
       <IDENTIFIER> 
         (<LEFT_BRACKET> Expression() <RIGHT_BRACKET>)? 
         <ASSIGN> Expression() <SEMICOLON>
-      )
+      ))
 }
 
-void Expression() : {} {
+void Expression() #void : {} {
 
-    ( Expression() ( <AND> | <LESS_THAN> | <SUM> | <SUB> | <MUL> | <DIV> ) Expression() )
-    | ( Expression() <LEFT_BRACKET> Expression() <RIGHT_BRACKET> )
-    | ( Expression() <DOT> <LENGTH> )
-    | ( Expression() <DOT> <IDENTIFIER> 
-        <LEFT_PARENTESIS> 
-            | (Expression() (<COLON> Expression())* )
-        <RIGHT_PARENTESIS>
-      )
-    | <INTEGER_LITERAL>
+    AND()
+
+}
+
+ void AND() #void : {} {
+     LessThan() (LOOKAHEAD(2) <AND> LessThan() #AND(2))*
+ }
+
+ void LessThan() #void : {} {
+     Sum() (LOOKAHEAD(2) <LESS_THAN> Sum() #LESSTHAN(2))*
+ }
+
+ void Sum() #void : {} {
+     Mul() (LOOKAHEAD(2) (<SUM> | <SUB>) Mul() #SUM(2))*
+ }
+
+ void Mul() #void : {} {
+     DotExpression() (LOOKAHEAD(2) (<MUL> | <DIV>) DotExpression() #MUL(2))*
+ }
+
+ void DotExpression() #void : {} {
+
+    RestOfExpression() | (( <THIS> | <IDENTIFIER>)
+        (<DOT> <IDENTIFIER> 
+            (<LEFT_PARENTESIS> 
+                (Expression() (<COLON> Expression())*)?
+            <RIGHT_PARENTESIS>)?
+        )?)
+ }
+ 
+
+void RestOfExpression() : {} {
+
+    <INTEGER_LITERAL>
     | <TRUE_>
     | <FALSE_>
-    | <IDENTIFIER>
-    | <THIS>
-    | ( <NEW> <INT> <LEFT_BRACKET> Expression() <RIGHT_BRACKET> )
-    | ( <NEW> <IDENTIFIER> <LEFT_PARENTESIS> <RIGHT_PARENTESIS> )
+    | <NEW> (( <INT> <LEFT_BRACKET> Expression() <RIGHT_BRACKET> ) | (<IDENTIFIER> <LEFT_PARENTESIS> <RIGHT_PARENTESIS> ))
     | ( <NEGATION> Expression() )
     | ( <LEFT_PARENTESIS> Expression() <RIGHT_PARENTESIS>)
-
 }
+

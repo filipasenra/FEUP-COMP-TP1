@@ -94,6 +94,8 @@ public interface JmmConstants {
   int AND = 46;
   /** RegularExpression Id. */
   int NEGATION = 47;
+  /** RegularExpression Id. */
+  int ASSIGN = 48;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -148,6 +150,7 @@ public interface JmmConstants {
     "\"<\"",
     "\"&&\"",
     "\"!\"",
+    "\"=\"",
   };
 
 }
