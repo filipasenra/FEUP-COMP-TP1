@@ -6,8 +6,8 @@ options
 PARSER_BEGIN(Jmm)
 public class Jmm {
     public static void main(String args[]) throws ParseException {
-        System.out.println("Parser for a calculator that accepts expressions with integers, +,-,*,/,(, and ).");
-        System.out.println("Write an arithmetic expression:");
+        
+        System.out.println("Write an Java-- expression:");
         Jmm myParser = new Jmm(System.in);
         SimpleNode root = myParser.Expression(); // returns reference to root node 
         
